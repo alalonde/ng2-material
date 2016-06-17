@@ -4,7 +4,7 @@ import {ComponentFixture, TestComponentBuilder} from "@angular/compiler/testing"
 import {Component, DebugElement, EventEmitter, QueryList} from "@angular/core";
 import {CORE_DIRECTIVES} from "@angular/common";
 import {By} from "@angular/platform-browser";
-import {MdDataTableHeaderSelectableRow, MdDataTable, MdDataTableSelectableRow} from "./index";
+import {ITableSelectableRowSelectionChange, MdDataTableHeaderSelectableRow, MdDataTable, MdDataTableSelectableRow} from "./index";
 
 export function main() {
 
@@ -23,7 +23,7 @@ export function main() {
         </tr>
       </thead>
       <tbody>
-        <tr md-data-table-selectable-row>
+        <tr md-data-table-selectable-row (onChange)="rowSelected($event)" [selectable-value]="'0'">
           <td>$2.90</td>
         </tr>
         <tr md-data-table-selectable-row>
@@ -34,6 +34,7 @@ export function main() {
   })
   class TestComponent {
     selected: Array<any> = [];
+    rowSelected(data: ITableSelectableRowSelectionChange) {}
   }
 
   componentSanityCheck('Data table', 'md-data-table', `<md-data-table></md-data-table>`);
@@ -116,6 +117,36 @@ export function main() {
           });
 
           row.click();
+          api.fixture.destroy();
+        });
+      })));
+
+      it('should call a change listener when a row is selected', async(inject([], () => {
+        return setup().then((api: IDataTableFixture) => {
+          let testComp: TestComponent = api.fixture.debugElement.componentInstance;
+          let spy = spyOn(testComp, 'rowSelected');
+          
+          let row = api.debug.query(By.css('tbody tr:first-child')).nativeElement;
+          row.click();
+
+          expect(spy).toHaveBeenCalled();
+          expect(spy.calls.count()).toEqual(1);
+
+          api.fixture.destroy();
+        });
+      })));
+
+      it('should call a change listener once when row checkbox is selected', async(inject([], () => {
+        return setup().then((api: IDataTableFixture) => {
+          let testComp: TestComponent = api.fixture.debugElement.componentInstance;
+          let spy = spyOn(testComp, 'rowSelected');
+          
+          let checkbox = api.debug.query(By.css('tbody tr:first-child td.md-data-check-cell input')).nativeElement;
+          checkbox.click();
+
+          expect(spy).toHaveBeenCalled();
+          expect(spy.calls.count()).toEqual(1);
+
           api.fixture.destroy();
         });
       })));
